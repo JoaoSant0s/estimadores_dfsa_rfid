@@ -1,6 +1,6 @@
 var estimador = new Estimador();
-var graphic = new Graphic(estimador);
-
 estimador.init();
+
+var graphic = new Graphic(estimador);
 graphic.init();
 

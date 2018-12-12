@@ -2,77 +2,146 @@ class Graphic {
     constructor(estimador) {
         this.estimador = estimador;
         this.margin = { top: 50, right: 50, bottom: 50, left: 50 };
-        this.width = 500 - this.margin.left - this.margin.right // Use the window's width 
-        this.height = 500 - this.margin.top - this.margin.bottom; // Use the window's height    
+        this.width = 400 - this.margin.left - this.margin.right // Use the window's width 
+        this.height = 300 - this.margin.top - this.margin.bottom; // Use the window's height    
     }
 
     init() {
         this.create();
-    }
-
-    remove(){
-        d3.selectAll("svg > *").remove();
-    }
+    }    
 
     create(){
-        // The number of datapoints
-        var n = 21;
+        var grapchisType = [{
+            id: "slotsTotal", 
+            max:{x: 1000, y: 3500},
+            min: { x: 100, y: 0 },
+            yName: "Número de Slots"
+        }, 
+        {
+            id: "slotsEmpty",
+            max: { x: 1000, y: 1100 },
+            min: { x: 100, y: 0 },
+            yName: "Número de Slots Vazios"
+        }, 
+        {
+            id: "slotsCollisions",
+            max: { x: 1000, y: 1800},
+            min: { x: 100, y: 0},
+            yName: "Número de Slots em Colisão"
+        },
+        {
+            id: "slotsEficiencia",
+            max: { x: 1000, y: 100 },
+            min: { x: 100, y: 0 },
+            yName: "Eficiência %"
+        },
+        {
+            id: "slotsTime",
+            max: { x: 1000, y: 1000 },
+            min: { x: 100, y: 0 },
+            yName: "Tempo milissegundos"
+        }]
 
-        // 5. X scale will use the index of our data
-        var xScale = d3.scaleLinear()
-            .domain([0, n - 1]) // input
-            .range([0, this.width]); // output
+        /* , "slotsCollided", "slotsEmpties" */
 
-        // 6. Y scale will use the randomly generate number 
-        var yScale = d3.scaleLinear()
-            .domain([0, 1]) // input 
-            .range([this.height, 0]); // output 
+        for (let i = 0; i < grapchisType.length; i++) {
+            var svg = d3.select("#"+grapchisType[i].id).remove();            
+        }    
+        
+        for (let i = 0; i < grapchisType.length; i++) {  
+            var graphic = grapchisType[i];
+            var dataset = this.estimador.estimadorObject[graphic.id];             
 
-        // 7. d3's line generator
-        var line = d3.line()
-            .x(function (d, i) { return xScale(i); }) // set the x values for the line generator
-            .y(function (d) { return yScale(d.y); }) // set the y values for the line generator 
-            .curve(d3.curveMonotoneX) // apply smoothing to the line
+            var xScale = d3.scaleLinear()
+                .domain([graphic.min.x, graphic.max.x]) // input
+                .range([0, this.width]); // output
 
-        // 8. An array of objects of length N. Each object has key -> value pair, the key being "y" and the value is a random number
-        var dataset = d3.range(n).map(function (d) { return { "y": d3.randomUniform(1)() } })
+            // 6. Y scale will use the randomly generate number 
+            var yScale = d3.scaleLinear()
+                .domain([graphic.min.y, graphic.max.y]) // input 
+                .range([this.height, 0]); // output 
 
-        // 1. Add the SVG to the page and employ #2
-        var svg = d3.select("body").select("svg")
-            .attr("width", this.width + this.margin.left + this.margin.right)
-            .attr("height", this.height + this.margin.top + this.margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+            // 7. d3's line generator
+            var line = d3.line()
+                .x(function (d, i) { return xScale(d.x); }) // set the x values for the line generator
+                .y(function (d) { return yScale(d.y); }) // set the y values for the line generator                 
 
-        // 3. Call the x axis in a group tag
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + this.height + ")")
-            .call(d3.axisBottom(xScale).ticks(10).tickSize(-this.height)); // Create an axis component with d3.axisBottom
+            //var dataset = d3.range(n).map(function (d) { return { "y": d3.randomUniform(1100)() } })
+            var svg = d3.select("body").append("svg")
+                .attr("width", this.width + this.margin.left + this.margin.right)
+                .attr("height", this.height + this.margin.top + this.margin.bottom)
+                .attr("id", graphic.id)
+                .append("g")
+                .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-        // 4. Call the y axis in a group tag
-        svg.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(yScale).ticks(10).tickSize(-this.width)); // Create an axis component with d3.axisLeft
+            // 3. Call the x axis in a group tag
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + this.height + ")")
+                .call(d3.axisBottom(xScale).ticks(10).tickSize(-this.height))
+                .append("text")
+                .attr("x", this.width / 2)
+                .attr("y", 20)
+                .attr("dy", "0.71em")
+                .attr("fill", "#000")
+                .attr("text-anchor", "center")
+                .text("Número de Etiquetas");
 
-        // 9. Append the path, bind the data, and call the line generator 
-        svg.append("path")
-            .datum(dataset) // 10. Binds data to the line 
-            .attr("class", "line") // Assign a class for styling 
-            .attr("d", line); // 11. Calls the line generator 
+            // 4. Call the y axis in a group tag
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(d3.axisLeft(yScale).ticks(10).tickSize(-this.width))
+                .append("text")
+                .attr("transform", "translate(-40,50) rotate(-90)")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("dy", "0.71em")
+                .attr("fill", "#000")
+                .attr("text-anchor", "center")
+                .text(graphic.yName);
+            
+            for (var key in dataset){
+                var set = dataset[key];   
 
-        // 12. Appends a circle for each datapoint 
-        svg.selectAll(".dot")
-            .data(dataset)
-            .enter().append("circle") // Uses the enter().append() method
-            .attr("class", "dot") // Assign a class for styling
-            .attr("cx", function (d, i) { return xScale(i) })
-            .attr("cy", function (d) { return yScale(d.y) })
-            .attr("r", 5)
-            .on("mouseover", function (a, b, c) {
-                console.log(a)
-                //this.attr('class', 'focus')
-            })
-            .on("mouseout", function () { }) 
+                var group = svg.append("g");            
+                                
+                group.append("path")
+                    .datum(set) // 10. Binds data to the line 
+                    .attr("class", "line_" + key) // Assign a class for styling 
+                    .attr("data-legend", function (d) { return key })
+                    .attr("d", line); // 11. Calls the line generator 
+
+                // 12. Appends a circle for each datapoint 
+                group.selectAll(".dot")
+                    .data(set)
+                    .enter().append("ellipse") // Uses the enter().append() method
+                    .attr("class", "dot_" + key) // Assign a class for styling
+                    .attr("cx", function (d, i) {
+                        var x = xScale(d.x);
+                        return x;
+                    })
+                    .attr("cy", function (d) {
+                        var y = yScale(d.y);
+                        return y;
+                    })
+                    .attr("rx", 4)
+                    .attr("ry", 1)
+                    .on("mouseover", function (a, b, c) {
+                        //console.log(a)
+                        //this.attr('class', 'focus')
+                    })
+                    .on("mouseout", function () { });
+                    // .append("text")
+                    // .datum(function (d) { 
+                    //     return { name: "teste", value: set[set.length - 1] }; 
+                    // })
+                    // .attr("transform", function (d) { 
+                    //     return "translate(" + xScale(d.value.x) + "," + yScale(d.value.y) + ")";
+                    //  })
+                    // .attr("x", 3)
+                    // .attr("dy", ".35em")
+                    // .text(function (d) { return d.name; });
+            }                    
+        }        
     }   
 }
