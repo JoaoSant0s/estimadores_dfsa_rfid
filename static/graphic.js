@@ -74,6 +74,33 @@ class Graphic {
                 .append("g")
                 .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+            var legend = svg.append("g");
+            legend.append("ellipse") // Uses the enter().append() method
+                .attr("class", "dot_lowerBound") // Assign a class for styling
+                .attr("cx", 0)
+                .attr("cy", -35)
+                .attr("rx", 4)
+                .attr("ry", 1);
+
+            legend.append("text")
+                .attr("x", 10)
+                .attr("y", -30)   
+                .style("font-size", "15px")                                      
+                .text("Lower Bound");
+                
+            legend.append("ellipse") // Uses the enter().append() method
+                .attr("class", "dot_eomLee") // Assign a class for styling
+                .attr("cx", 0)
+                .attr("cy", -20)
+                .attr("rx", 4)
+                .attr("ry", 1);
+
+            legend.append("text")
+                .attr("x", 10)
+                .attr("y", -15)  
+                .style("font-size", "15px")                                            
+                .text("Eom Lee");
+
             // 3. Call the x axis in a group tag
             svg.append("g")
                 .attr("class", "x axis")
@@ -81,8 +108,7 @@ class Graphic {
                 .call(d3.axisBottom(xScale).ticks(10).tickSize(-this.height))
                 .append("text")
                 .attr("x", this.width / 2)
-                .attr("y", 20)
-                .attr("dy", "0.71em")
+                .attr("y", 20)                
                 .attr("fill", "#000")
                 .attr("text-anchor", "center")
                 .text("Número de Etiquetas");
@@ -94,8 +120,7 @@ class Graphic {
                 .append("text")
                 .attr("transform", "translate(-40,50) rotate(-90)")
                 .attr("x", 0)
-                .attr("y", 0)
-                .attr("dy", "0.71em")
+                .attr("y", 0)                
                 .attr("fill", "#000")
                 .attr("text-anchor", "center")
                 .text(graphic.yName);

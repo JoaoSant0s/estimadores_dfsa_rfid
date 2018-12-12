@@ -99,9 +99,10 @@ class Estimador {
             console.log(j, sigamSlotsTotal / this.totalSimulations, sigamSlotsCollision / this.totalSimulations, sigamSlotsEmpties / this.totalSimulations, sigamSlotsSuccess/this.totalSimulations)
             var auxTotalSlots = sigamSlotsTotal / this.totalSimulations;
 
-            this.estimadorObject.slotsTotal.lowerBound.push({ x: j, y: auxTotalSlots })
-            this.estimadorObject.slotsEmpty.lowerBound.push({ x: j, y: sigamSlotsEmpties / this.totalSimulations })
-            this.estimadorObject.slotsCollisions.lowerBound.push({ x: j, y: sigamSlotsCollision / this.totalSimulations })
+            this.estimadorObject.slotsTotal.lowerBound.push({ x: j, y: auxTotalSlots });
+            this.estimadorObject.slotsEmpty.lowerBound.push({ x: j, y: Math.ceil(sigamSlotsEmpties / this.totalSimulations) });
+            this.estimadorObject.slotsCollisions.lowerBound.push({ x: j, y: Math.ceil(sigamSlotsCollision / this.totalSimulations) });
+
             this.estimadorObject.slotsEficiencia.lowerBound.push({ x: j, y: (((sigamSlotsSuccess / this.totalSimulations) / auxTotalSlots) * 100) })
             this.estimadorObject.slotsTime.lowerBound.push({ x: j, y: (endTime - startTime) })            
         }
@@ -171,8 +172,8 @@ class Estimador {
             var auxTotalSlots = sigamSlotsTotal / this.totalSimulations;
 
             this.estimadorObject.slotsTotal.eomLee.push({ x: j, y: auxTotalSlots })
-            this.estimadorObject.slotsEmpty.eomLee.push({ x: j, y: sigamSlotsEmpties / this.totalSimulations })
-            this.estimadorObject.slotsCollisions.eomLee.push({ x: j, y: sigamSlotsCollision / this.totalSimulations })
+            this.estimadorObject.slotsEmpty.eomLee.push({ x: j, y: Math.ceil(sigamSlotsEmpties / this.totalSimulations) })
+            this.estimadorObject.slotsCollisions.eomLee.push({ x: j, y: Math.ceil(sigamSlotsCollision / this.totalSimulations) })
             this.estimadorObject.slotsEficiencia.eomLee.push({ x: j, y: (((sigamSlotsSuccess / this.totalSimulations) / auxTotalSlots) * 100) })            
             this.estimadorObject.slotsTime.eomLee.push({ x: j, y: (endTime - startTime) })            
         }
@@ -183,20 +184,28 @@ class Estimador {
     }
 
     eomLee(frameSize, slotsCollisionNumber, slotsSuccessNumber){
-        var b, kb, num, den, frac;
+        var b, kb, num, den, frac, k_aux, yk;
         var k = 2.0;
+        var f = 0;
 
-        do {
-            kb = k;
-            b = frameSize / ( (kb * slotsCollisionNumber) + slotsSuccessNumber);
-            frac = Math.exp(-(1 / b));
-            num = 1 - frac;
-            den = (b * (1-(1+(1/b)) * frac));
-            k = num / den;
+        var collisionFloat = parseFloat(slotsCollisionNumber);
+        var successFloat = parseFloat(slotsSuccessNumber);
+
+        do {            
+            b = frameSize / ((k * collisionFloat) + successFloat);
+            frac = Math.exp(-(1.0 / b));
+            num = (1.0 - frac);            
+            den = (b * (1.0- (1.0 + (1.0/b) ) * frac));
+            yk = num / den;
+
+            f = yk * collisionFloat;
+
+            k_aux = k;
+            k = yk;                
         }
-        while (Math.abs(kb - k) < 0.001);
+        while (Math.abs(k - k_aux) > 0.001);
 
-        return Math.ceil(k * slotsCollisionNumber);
+        return Math.ceil(f);
     }
 
 
