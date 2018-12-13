@@ -13,32 +13,37 @@ class Graphic {
     create(){
         var grapchisType = [{
             id: "slotsTotal", 
-            max:{x: 1000, y: 3500},
+            max:{x: 1000, y: 4000},
             min: { x: 100, y: 0 },
+            ticks:{x: 10, y: 10},
             yName: "Número de Slots"
         }, 
         {
             id: "slotsEmpty",
-            max: { x: 1000, y: 1100 },
+            max: { x: 1000, y: 3000 },
             min: { x: 100, y: 0 },
+            ticks: { x: 10, y: 10 },
             yName: "Número de Slots Vazios"
         }, 
         {
             id: "slotsCollisions",
             max: { x: 1000, y: 1800},
             min: { x: 100, y: 0},
+            ticks: { x: 10, y: 10 },
             yName: "Número de Slots em Colisão"
         },
         {
             id: "slotsEficiencia",
             max: { x: 1000, y: 100 },
             min: { x: 100, y: 0 },
+            ticks: { x: 10, y: 10 },
             yName: "Eficiência %"
         },
         {
             id: "slotsTime",
-            max: { x: 1000, y: 1000 },
-            min: { x: 100, y: 0 },
+            max: { x: 1000, y: 2.0 },
+            min: { x: 100, y: 0.0 },
+            ticks: { x: 10, y: 20 },
             yName: "Tempo milissegundos"
         }]
 
@@ -101,11 +106,24 @@ class Graphic {
                 .style("font-size", "15px")                                            
                 .text("Eom Lee");
 
+            legend.append("ellipse") // Uses the enter().append() method
+                .attr("class", "dot_chen") // Assign a class for styling
+                .attr("cx", 125)
+                .attr("cy", -35)
+                .attr("rx", 4)
+                .attr("ry", 1);
+
+            legend.append("text")
+                .attr("x", 135)
+                .attr("y", -30)
+                .style("font-size", "15px")
+                .text("Chen");
+
             // 3. Call the x axis in a group tag
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + this.height + ")")
-                .call(d3.axisBottom(xScale).ticks(10).tickSize(-this.height))
+                .call(d3.axisBottom(xScale).ticks(graphic.ticks.x).tickSize(-this.height))
                 .append("text")
                 .attr("x", this.width / 2)
                 .attr("y", 20)                
@@ -116,7 +134,7 @@ class Graphic {
             // 4. Call the y axis in a group tag
             svg.append("g")
                 .attr("class", "y axis")
-                .call(d3.axisLeft(yScale).ticks(10).tickSize(-this.width))
+                .call(d3.axisLeft(yScale).ticks(graphic.ticks.y).tickSize(-this.width))
                 .append("text")
                 .attr("transform", "translate(-40,50) rotate(-90)")
                 .attr("x", 0)
@@ -150,22 +168,7 @@ class Graphic {
                         return y;
                     })
                     .attr("rx", 4)
-                    .attr("ry", 1)
-                    .on("mouseover", function (a, b, c) {
-                        //console.log(a)
-                        //this.attr('class', 'focus')
-                    })
-                    .on("mouseout", function () { });
-                    // .append("text")
-                    // .datum(function (d) { 
-                    //     return { name: "teste", value: set[set.length - 1] }; 
-                    // })
-                    // .attr("transform", function (d) { 
-                    //     return "translate(" + xScale(d.value.x) + "," + yScale(d.value.y) + ")";
-                    //  })
-                    // .attr("x", 3)
-                    // .attr("dy", ".35em")
-                    // .text(function (d) { return d.name; });
+                    .attr("ry", 1)                            
             }                    
         }        
     }   
