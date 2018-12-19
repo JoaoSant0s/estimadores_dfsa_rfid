@@ -35,10 +35,10 @@ class Estimador {
         }
     }
 
-    init() {
+    init() {        
         this.lowerBoundEstimator();
-        this.eomLeeEstimator();  
-        this.chenEstimator();      
+        this.eomLeeEstimator();                
+        this.chenEstimator();
     }   
 
     lowerBoundEstimator() {
@@ -251,8 +251,7 @@ class Estimador {
 
             var sigmaTimeCount = 0;
             var sigmaTime = 0;  
-
-            //var mediaCollided = 0
+            
             for (let i = 0; i < this.totalSimulations; i++) {
                 var frameSize = this.initialFrameSize;
                 var totalSlots = frameSize;
@@ -285,21 +284,21 @@ class Estimador {
                     values.collided = slots.filter((value) => { return value > 1; }).length;
                     values.success = slots.filter((value) => { return value == 1; }).length;
                     values.empties = slots.filter((value) => { return value == 0; }).length;
-
-                    frameSize = this.chen(values.empties, values.collided, values.success);
-
+                
                     if (values.collided > 0) {
-                        etiquetas -= values.success;
+                        frameSize = this.chen(values.empties, values.collided, values.success);                        
                     } else {
                         stopCheck = true;
                     }
+
+                    etiquetas -= values.success;
 
                     totalSlots += frameSize;
                     collisionSlots += values.collided;
                     emptiesSlots += values.empties;
                     sucessSlots += values.success;
                     incrementalTime += this.auxTime     
-                } while (!stopCheck);
+                } while (etiquetas > 0);
 
                 sigmaSlotsTotal += totalSlots;
                 sigmaSlotsCollision += collisionSlots;
@@ -319,60 +318,147 @@ class Estimador {
         }
     }
 
-    chen(slotsEmptiesNumber, slotsCollisionNumber, slotsSuccessNumber){
+    chen(slotsEmptiesNumber, slotsCollisionNumber, slotsSuccessNumber) {
         var startTime = new Date().getTime();
 
-        var floatSlotsEmptiesNumber = parseFloat(slotsEmptiesNumber);
-        var floatSlotsCollisionNumber = parseFloat(slotsCollisionNumber);
-        var floatSlotsSuccessNumber = parseFloat(slotsSuccessNumber);
+        var l = slotsEmptiesNumber + slotsSuccessNumber + slotsCollisionNumber;
+        var n = slotsSuccessNumber + 2 * slotsCollisionNumber;
+        var fact = this._simple_factorial(l, slotsEmptiesNumber, slotsSuccessNumber, slotsCollisionNumber);
 
-        var l = floatSlotsEmptiesNumber + floatSlotsCollisionNumber + floatSlotsSuccessNumber;
-        var n = floatSlotsSuccessNumber + 2.0 * floatSlotsCollisionNumber;
         var next = 0.0;
         var previus = -1.0;
 
         while (previus < next) {
-            var pE = Math.pow((1.0 - (1.0 / l)), n);
-            var pS = (n/l) * Math.pow( (1.0 - (1.0 / l) ), (n - 1.0) );
+            var x = 1.0 - (1.0 / parseFloat(l));
+
+            var pE = Math.pow(x, n);
+            var pS = (n / parseFloat(l)) * Math.pow(x, (n - 1.0));
             var pC = 1.0 - pE - pS;
             previus = next;
-            next = this._simple_factorial(l, floatSlotsEmptiesNumber, floatSlotsSuccessNumber, floatSlotsCollisionNumber) * Math.pow(pE, floatSlotsEmptiesNumber) * Math.pow(pS, floatSlotsSuccessNumber) * Math.pow(pC, floatSlotsCollisionNumber);
-            n = n + 1.0;
+            var a = Math.pow(pE, slotsEmptiesNumber) * Math.pow(pS, slotsSuccessNumber) * Math.pow(pC, slotsCollisionNumber);
+
+            next = Math.ceil(a) * fact;
+            //next = a * fact;
+            n++;
+
         }
-        var nChen = n - 2.0;
+        var nChen = n - 2;
 
         var endTime = new Date().getTime();
+        this.auxTime = endTime - startTime;
 
+        return nChen;
+    }
+    
+    _simple_factorial(a, b, c, d) {
+        var result = 1;
+
+        while (a > 1) {
+            result = result * a
+            a = a - 1
+
+            if (b > 1) {
+                result = result / b
+                b = b - 1
+            }
+
+            if (c > 1) {
+                result = result / c
+                c = c - 1
+            }
+
+            if (d > 1) {
+                result = result / d
+                d = d - 1
+            }
+        }
+
+        return result;
+    }
+
+    chenBig(slotsEmptiesNumber, slotsCollisionNumber, slotsSuccessNumber){
+        var startTime = new Date().getTime();
+
+        var l = slotsEmptiesNumber + slotsSuccessNumber + slotsCollisionNumber;
+        var n = slotsSuccessNumber + 2 * slotsCollisionNumber;
+
+        var decimalValue = 1
+
+        var fact = this._fixedBigNumber(this._simple_factorialBig(l, slotsEmptiesNumber, slotsSuccessNumber, slotsCollisionNumber), decimalValue);
+
+        var next = new Big(0.0);
+        var previus = new Big(-1.0);        
+
+        while (next.gt(previus)) {
+            var x = 1.0 - (1.0 / parseFloat(l));
+            var pE = (new Big(x)).pow(n);
+            pE = this._fixedBigNumber(pE, decimalValue)
+            //var pE = Math.pow(x, n);
+
+            var bPS = ((new Big(x)).pow((n - 1.0)));
+            bPS = this._fixedBigNumber(bPS, decimalValue);
+            
+            var pS = this._fixedBigNumber(bPS.times(n / l), decimalValue);            
+            //var pS = (n / parseFloat(l)) * Math.pow(x, (n - 1.0));
+
+            var pC = (new Big(1)).minus(pE).minus(pS);
+            //var pC = 1.0 - pE - pS;
+
+            previus = next;
+
+            var powE = this._fixedBigNumber(pE.pow(slotsEmptiesNumber), decimalValue);
+            var powS = this._fixedBigNumber(pS.pow(slotsSuccessNumber), decimalValue);
+            var powC = this._fixedBigNumber(pC.pow(slotsCollisionNumber), decimalValue);
+
+            var ah = this._fixedBigNumber(powE.times(powS), decimalValue)            
+            var a = this._fixedBigNumber(ah.times(powC), decimalValue);            
+
+            //var a = Math.pow(pE, slotsEmptiesNumber) * Math.pow(pS, slotsSuccessNumber) * Math.pow(pC, slotsCollisionNumber);            
+            next = this._fixedBigNumber(a.times(fact), decimalValue);
+            //next = Math.ceil(a * this._simple_factorial(l, slotsEmptiesNumber, slotsSuccessNumber, slotsCollisionNumber));
+
+            n++;
+        }
+        var nChen = n - 2;
+
+        var endTime = new Date().getTime();
         this.auxTime = endTime - startTime;
 
         return nChen;
     }
 
-    _simple_factorial(a, b, c, d){
-        var result = 1.0
-
-        while (a > 1.0){
-            result = result * a
-
-            a = a - 1.0
-            if (b > 1.0){
-                result = result / b
-                b = b - 1.0
-            }	                
-
-            if (c > 1.0){
-                result = result / c
-                c = c - 1.0
-            }                            
-
-            if (d > 1.0){
-                result = result / d
-                d = d - 1.0
-            }	      
-        }
-	    
-        return result;
+    _fixedBigNumber(big, fixed){
+        return (new Big(big.toFixed(fixed)))
     }
+
+    _simple_factorialBig(a, b, c, d) {
+        var result = new Big(1.0);
+
+        while (a > 1) {
+            result = this._fixedBigNumber(result.times(a), 20);
+            //result = result * a
+            a--;
+
+            if (b > 1) {
+                result = this._fixedBigNumber(result.div(b), 20);
+                b = b - 1
+            }
+
+            if (c > 1) {
+                result = this._fixedBigNumber(result.div(c), 20);
+                //result = result / c
+                c = c - 1
+            }
+
+            if (d > 1) {
+                result = this._fixedBigNumber(result.div(d), 20);
+                //result = result / d
+                d = d - 1
+            }
+        }
+
+        return result;
+    }    
 
     /* 
     def simple_factorial(a, b, c, d)

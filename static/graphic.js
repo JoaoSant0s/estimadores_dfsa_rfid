@@ -20,7 +20,7 @@ class Graphic {
         }, 
         {
             id: "slotsEmpty",
-            max: { x: 1000, y: 3000 },
+            max: { x: 1000, y: 3500 },
             min: { x: 100, y: 0 },
             ticks: { x: 10, y: 10 },
             yName: "Número de Slots Vazios"
@@ -41,9 +41,9 @@ class Graphic {
         },
         {
             id: "slotsTime",
-            max: { x: 1000, y: 2.0 },
+            max: { x: 1000, y: 0.35 },
             min: { x: 100, y: 0.0 },
-            ticks: { x: 10, y: 20 },
+            ticks: { x: 10, y: 15 },
             yName: "Tempo milissegundos"
         }]
 
